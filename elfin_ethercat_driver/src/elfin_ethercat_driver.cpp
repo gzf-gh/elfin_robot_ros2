@@ -37,12 +37,14 @@ Created on Mon Sep 17 10:31:06 2018
 */
 // author: Cong Liu
 
+#include <cstddef>
+
 #include <elfin_ethercat_driver/elfin_ethercat_driver.h>
 
 namespace elfin_ethercat_driver {
 
 ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string driver_name,const rclcpp::Node::SharedPtr& node):
-    driver_name_(driver_name),ed_nh_(node)
+    ed_nh_(node),driver_name_(driver_name)
 {
     int64_t slave_no_array_default[3]={1, 2, 3};
     std::vector<int64_t> slave_no_default;
@@ -59,7 +61,7 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     std::vector<std::string> joint_names_default;
     joint_names_default.clear();
     joint_names_default.reserve(2*slave_no_.size());
-    for(int i=0; i<slave_no_.size(); i++)
+    for(std::size_t i=0; i<slave_no_.size(); i++)
     {
         std::string num_1=boost::lexical_cast<std::string>(2*(i+1)-1);
         std::string num_2=boost::lexical_cast<std::string>(2*(i+1));
@@ -78,7 +80,7 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     std::vector<double> reduction_ratios_default;
     reduction_ratios_default.clear();
     reduction_ratios_default.reserve(2*slave_no_.size());
-    for(int i=0; i<slave_no_.size(); i++)
+    for(std::size_t i=0; i<slave_no_.size(); i++)
     {
         reduction_ratios_default.push_back(101);
         reduction_ratios_default.push_back(101);
@@ -87,11 +89,11 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     ed_nh_->get_parameter_or<std::vector<double> >("reduction_ratios", reduction_ratios_, reduction_ratios_default);
 
     // Check the values of reduction ratios
-    for(int i=0; i<reduction_ratios_.size(); i++)
+    for(std::size_t i=0; i<reduction_ratios_.size(); i++)
     {
         if(reduction_ratios_[i]<1)
         {
-            RCLCPP_ERROR(ed_nh_->get_logger(), "reduction_ratios[%i] is too small", i);
+            RCLCPP_ERROR(ed_nh_->get_logger(), "reduction_ratios[%zu] is too small", i);
             exit(0);
         }
     }
@@ -100,7 +102,7 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     std::vector<double> axis_position_factors_default;
     axis_position_factors_default.clear();
     axis_position_factors_default.reserve(2*slave_no_.size());
-    for(int i=0; i<slave_no_.size(); i++)
+    for(std::size_t i=0; i<slave_no_.size(); i++)
     {
         axis_position_factors_default.push_back(131072);
         axis_position_factors_default.push_back(131072);
@@ -109,11 +111,11 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     ed_nh_->get_parameter_or<std::vector<double> >("axis_position_factors", axis_position_factors_, axis_position_factors_default);
 
     // Check the values of axis position factors
-    for(int i=0; i<axis_position_factors_.size(); i++)
+    for(std::size_t i=0; i<axis_position_factors_.size(); i++)
     {
         if(axis_position_factors_[i]<1)
         {
-            RCLCPP_ERROR(ed_nh_->get_logger(),"axis_position_factors[%i] is too small", i);
+            RCLCPP_ERROR(ed_nh_->get_logger(),"axis_position_factors[%zu] is too small", i);
             exit(0);
         }
     }
@@ -129,11 +131,11 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     ed_nh_->get_parameter("axis_torque_factors", axis_torque_factors_);
 
     // Check the values of axis torque factors
-    for(int i=0; i<axis_torque_factors_.size(); i++)
+    for(std::size_t i=0; i<axis_torque_factors_.size(); i++)
     {
         if(axis_torque_factors_[i]<1)
         {
-            RCLCPP_ERROR(ed_nh_->get_logger(),"axis_torque_factors[%i] is too small", i);
+            RCLCPP_ERROR(ed_nh_->get_logger(),"axis_torque_factors[%zu] is too small", i);
             exit(0);
         }
     }
@@ -153,33 +155,33 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     // axis torque factors and count_zeros
     if(joint_names_.size()!=slave_no_.size()*2)
     {
-        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of joint names is %lu, it should be %lu", joint_names_.size(), slave_no_.size()*2);
+        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of joint names is %zu, it should be %zu", joint_names_.size(), slave_no_.size()*2);
         exit(0);
     }
     if(reduction_ratios_.size()!=slave_no_.size()*2)
     {
-        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of reduction ratios is %lu, it should be %lu", reduction_ratios_.size(), slave_no_.size()*2);
+        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of reduction ratios is %zu, it should be %zu", reduction_ratios_.size(), slave_no_.size()*2);
         exit(0);
     }
     if(axis_position_factors_.size()!=slave_no_.size()*2)
     {
-        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of axis position factors is %lu, it should be %lu", axis_position_factors_.size(), slave_no_.size()*2);
+        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of axis position factors is %zu, it should be %zu", axis_position_factors_.size(), slave_no_.size()*2);
         exit(0);
     }
     if(axis_torque_factors_.size()!=slave_no_.size()*2)
     {
-        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of axis torque factors is %lu, it should be %lu", axis_torque_factors_.size(), slave_no_.size()*2);
+        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of axis torque factors is %zu, it should be %zu", axis_torque_factors_.size(), slave_no_.size()*2);
         exit(0);
     }
     if(count_zeros_.size()!=slave_no_.size()*2)
     {
-        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of count_zeros is %lu, it should be %lu", count_zeros_.size(), slave_no_.size()*2);
+        RCLCPP_ERROR(ed_nh_->get_logger(),"the number of count_zeros is %zu, it should be %zu", count_zeros_.size(), slave_no_.size()*2);
         exit(0);
     }
 
     // Initialize count_rad_factors
     count_rad_factors_.resize(count_zeros_.size());
-    for(int i=0; i<count_rad_factors_.size(); i++)
+    for(std::size_t i=0; i<count_rad_factors_.size(); i++)
     {
         count_rad_factors_[i]=reduction_ratios_[i]*axis_position_factors_[i]/(2*M_PI);
     }
@@ -191,7 +193,7 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     // Initialize ethercat_client_
     ethercat_clients_.clear();
     ethercat_clients_.resize(slave_no_.size());
-    for(int i=0; i<slave_no_.size(); i++)
+    for(std::size_t i=0; i<slave_no_.size(); i++)
     {
         ethercat_clients_[i]=new ElfinEtherCATClient(manager, slave_no_[i], ed_nh_);
     }
@@ -212,13 +214,13 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     ethercat_io_clients_.clear();
     ethercat_io_clients_.resize(io_slave_no_.size());
     std::string io_port="io_port";
-    for(int i=0; i<io_slave_no_.size(); i++)
+    for(std::size_t i=0; i<io_slave_no_.size(); i++)
     {
         std::string num=boost::lexical_cast<std::string>(i+1);
         std::string io_port_name=io_port.append(num);
         ethercat_io_clients_[i]=new ElfinEtherCATIOClient(manager, io_slave_no_[i], ed_nh_, io_port_name);
     }
-   
+
     get_txpdo_server_=ed_nh_->create_service<std_srvs::srv::SetBool>("get_txpdo", std::bind(&ElfinEtherCATDriver::getTxPDO_cb, this,std::placeholders::_1,std::placeholders::_2));
     get_rxpdo_server_=ed_nh_->create_service<std_srvs::srv::SetBool>("get_rxpdo", std::bind(&ElfinEtherCATDriver::getRxPDO_cb, this,std::placeholders::_1,std::placeholders::_2));
     get_current_position_server_=ed_nh_->create_service<std_srvs::srv::SetBool>("get_current_position", std::bind(&ElfinEtherCATDriver::getCurrentPosition_cb, this,std::placeholders::_1,std::placeholders::_2));
@@ -228,15 +230,13 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
     disable_robot_=ed_nh_->create_service<std_srvs::srv::SetBool>("disable_robot", std::bind(&ElfinEtherCATDriver::disableRobot_cb, this,std::placeholders::_1,std::placeholders::_2));
     clear_fault_=ed_nh_->create_service<std_srvs::srv::SetBool>("clear_fault", std::bind(&ElfinEtherCATDriver::clearFault_cb, this,std::placeholders::_1,std::placeholders::_2));
     recognize_position_=ed_nh_->create_service<std_srvs::srv::SetBool>("recognize_position", std::bind(&ElfinEtherCATDriver::recognizePosition_cb, this,std::placeholders::_1,std::placeholders::_2));
-    
+
     enable_state_pub_ = ed_nh_->create_publisher<std_msgs::msg::Bool>("enable_state", 1);
     fault_state_pub_ = ed_nh_->create_publisher<std_msgs::msg::Bool>("fault_state", 1);
 
-    
     auto timeout = std::chrono::duration<double, std::milli>(100);
 
     status_timer_=ed_nh_->create_wall_timer(timeout, std::bind(&ElfinEtherCATDriver::updateStatus,this));
-
 
     // Recognize the Positions
     bool recognize_flag;
@@ -259,12 +259,12 @@ ElfinEtherCATDriver::ElfinEtherCATDriver(EtherCatManager *manager, std::string d
 
 ElfinEtherCATDriver::~ElfinEtherCATDriver()
 {
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         if(ethercat_clients_[i]!=NULL)
             delete ethercat_clients_[i];
     }
-    for(int i=0; i<ethercat_io_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_io_clients_.size(); i++)
     {
         if(ethercat_io_clients_[i]!=NULL)
             delete ethercat_io_clients_[i];
@@ -275,7 +275,7 @@ ElfinEtherCATDriver::~ElfinEtherCATDriver()
 bool ElfinEtherCATDriver::getEnableState()
 {
     bool enable_flag_tmp=true;
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         enable_flag_tmp=enable_flag_tmp && ethercat_clients_[i]->isEnabled();
     }
@@ -286,7 +286,7 @@ bool ElfinEtherCATDriver::getEnableState()
 bool ElfinEtherCATDriver::getFaultState()
 {
     bool fault_flag_tmp=false;
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         fault_flag_tmp=fault_flag_tmp || ethercat_clients_[i]->isWarning();
     }
@@ -303,7 +303,7 @@ bool ElfinEtherCATDriver::getMotionState()
     last_pos.resize(count_zeros_.size());
 
     int32_t count1, count2;
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         ethercat_clients_[i]->getActPosCounts(count1, count2);
         previous_pos[2*i]=count1/count_rad_factors_[2*i];
@@ -312,14 +312,14 @@ bool ElfinEtherCATDriver::getMotionState()
 
     usleep(10000);
 
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         ethercat_clients_[i]->getActPosCounts(count1, count2);
         last_pos[2*i]=count1/count_rad_factors_[2*i];
         last_pos[2*i+1]=count2/count_rad_factors_[2*i+1];
     }
 
-    for(int i=0; i<previous_pos.size(); i++)
+    for(std::size_t i=0; i<previous_pos.size(); i++)
     {
         if(fabs(last_pos[i]-previous_pos[i])>motion_threshold_)
         {
@@ -341,7 +341,7 @@ bool ElfinEtherCATDriver::getPosAlignState()
     cmd_pos.resize(count_zeros_.size());
 
     int32_t count1, count2;
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         ethercat_clients_[i]->getActPosCounts(count1, count2);
         act_pos[2*i]=count1/count_rad_factors_[2*i];
@@ -352,7 +352,7 @@ bool ElfinEtherCATDriver::getPosAlignState()
         cmd_pos[2*i+1]=count2/count_rad_factors_[2*i+1];
     }
 
-    for(int i=0; i<act_pos.size(); i++)
+    for(std::size_t i=0; i<act_pos.size(); i++)
     {
         if(fabs(cmd_pos[i]-act_pos[i])>pos_align_threshold_)
         {
@@ -430,11 +430,11 @@ bool ElfinEtherCATDriver::recognizePosition()
         std::vector<int> threads;
         threads.resize(ethercat_clients_.size());
 
-        for(int i=0; i<ethercat_clients_.size(); i++)
+        for(std::size_t i=0; i<ethercat_clients_.size(); i++)
         {
             threads[i]=pthread_create(&tids[i], NULL, ethercat_clients_[i]->recognizePoseCmd, (void *)ethercat_clients_[i]);
         }
-        for(int i=0; i<ethercat_clients_.size(); i++)
+        for(std::size_t i=0; i<ethercat_clients_.size(); i++)
         {
             pthread_join(tids[i], NULL);
         }
@@ -466,7 +466,7 @@ bool ElfinEtherCATDriver::getTxPDO_cb(const std::shared_ptr<std_srvs::srv::SetBo
     unsigned int reference_length=result.size();
     result.reserve(ethercat_clients_.size() * reference_length);
 
-    for(int i=1; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=1; i<ethercat_clients_.size(); i++)
     {
         result.append(ethercat_clients_[i]->getTxPDO());
     }
@@ -495,7 +495,7 @@ bool ElfinEtherCATDriver::getRxPDO_cb(const std::shared_ptr<std_srvs::srv::SetBo
     unsigned int reference_length=result.size();
     result.reserve(ethercat_clients_.size() * reference_length);
 
-    for(int i=1; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=1; i<ethercat_clients_.size(); i++)
     {
         result.append(ethercat_clients_[i]->getRxPDO());
     }
@@ -522,7 +522,7 @@ bool ElfinEtherCATDriver::getCurrentPosition_cb(const std::shared_ptr<std_srvs::
 
     std::string result=ethercat_clients_[0]->getCurrentPosition();
 
-    for(int i=1; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=1; i<ethercat_clients_.size(); i++)
     {
         result.append(ethercat_clients_[i]->getCurrentPosition());
     }
@@ -575,11 +575,11 @@ bool ElfinEtherCATDriver::enableRobot_test()
     std::vector<int> threads;
     threads.resize(ethercat_clients_.size());
 
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         threads[i]=pthread_create(&tids[i], NULL, ethercat_clients_[i]->setEnable, (void *)ethercat_clients_[i]);
     }
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         pthread_join(tids[i], NULL);
     }
@@ -591,7 +591,7 @@ bool ElfinEtherCATDriver::enableRobot_test()
     while (rclcpp::ok())
     {
         flag_tmp=true;
-        for(int i=0; i<ethercat_clients_.size(); i++)
+        for(std::size_t i=0; i<ethercat_clients_.size(); i++)
         {
             flag_tmp=flag_tmp && ethercat_clients_[i]->isEnabled();
         }
@@ -606,6 +606,8 @@ bool ElfinEtherCATDriver::enableRobot_test()
         usleep(100000);
         clock_gettime(CLOCK_REALTIME, &tick);
     }
+
+    return false;
 }
 
 bool ElfinEtherCATDriver::enableRobot_cb(const std::shared_ptr<std_srvs::srv::SetBool::Request> req, const std::shared_ptr<std_srvs::srv::SetBool::Response> resp)
@@ -635,11 +637,11 @@ bool ElfinEtherCATDriver::enableRobot_cb(const std::shared_ptr<std_srvs::srv::Se
     std::vector<int> threads;
     threads.resize(ethercat_clients_.size());
 
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         threads[i]=pthread_create(&tids[i], NULL, ethercat_clients_[i]->setEnable, (void *)ethercat_clients_[i]);
     }
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         pthread_join(tids[i], NULL);
     }
@@ -651,7 +653,7 @@ bool ElfinEtherCATDriver::enableRobot_cb(const std::shared_ptr<std_srvs::srv::Se
     while (rclcpp::ok())
     {
         flag_tmp=true;
-        for(int i=0; i<ethercat_clients_.size(); i++)
+        for(std::size_t i=0; i<ethercat_clients_.size(); i++)
         {
             flag_tmp=flag_tmp && ethercat_clients_[i]->isEnabled();
         }
@@ -670,6 +672,10 @@ bool ElfinEtherCATDriver::enableRobot_cb(const std::shared_ptr<std_srvs::srv::Se
         usleep(100000);
         clock_gettime(CLOCK_REALTIME, &tick);
     }
+
+    resp->success=false;
+    resp->message="rclcpp is not ok";
+    return true;
 }
 
 bool ElfinEtherCATDriver::disableRobot_cb(const std::shared_ptr<std_srvs::srv::SetBool::Request> req, const std::shared_ptr<std_srvs::srv::SetBool::Response> resp)
@@ -693,11 +699,11 @@ bool ElfinEtherCATDriver::disableRobot_cb(const std::shared_ptr<std_srvs::srv::S
     std::vector<int> threads;
     threads.resize(ethercat_clients_.size());
 
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         threads[i]=pthread_create(&tids[i], NULL, ethercat_clients_[i]->setDisable, (void *)ethercat_clients_[i]);
     }
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         pthread_join(tids[i], NULL);
     }
@@ -709,7 +715,7 @@ bool ElfinEtherCATDriver::disableRobot_cb(const std::shared_ptr<std_srvs::srv::S
     while (rclcpp::ok())
     {
         flag_tmp=false;
-        for(int i=0; i<ethercat_clients_.size(); i++)
+        for(std::size_t i=0; i<ethercat_clients_.size(); i++)
         {
             flag_tmp=flag_tmp || ethercat_clients_[i]->isEnabled();
         }
@@ -728,6 +734,10 @@ bool ElfinEtherCATDriver::disableRobot_cb(const std::shared_ptr<std_srvs::srv::S
         usleep(100000);
         clock_gettime(CLOCK_REALTIME, &tick);
     }
+
+    resp->success=false;
+    resp->message="rclcpp is not ok";
+    return true;
 }
 
 bool ElfinEtherCATDriver::clearFault_cb(const std::shared_ptr<std_srvs::srv::SetBool::Request> req, const std::shared_ptr<std_srvs::srv::SetBool::Response> resp)
@@ -745,7 +755,7 @@ bool ElfinEtherCATDriver::clearFault_cb(const std::shared_ptr<std_srvs::srv::Set
         return true;
     }
 
-    for(int i=0; i<ethercat_clients_.size(); i++)
+    for(std::size_t i=0; i<ethercat_clients_.size(); i++)
     {
         ethercat_clients_[i]->resetFault();
     }
@@ -757,7 +767,7 @@ bool ElfinEtherCATDriver::clearFault_cb(const std::shared_ptr<std_srvs::srv::Set
     while (rclcpp::ok())
     {
         flag_tmp=false;
-        for(int i=0; i<ethercat_clients_.size(); i++)
+        for(std::size_t i=0; i<ethercat_clients_.size(); i++)
         {
             flag_tmp=flag_tmp || ethercat_clients_[i]->isWarning();
         }
@@ -776,6 +786,10 @@ bool ElfinEtherCATDriver::clearFault_cb(const std::shared_ptr<std_srvs::srv::Set
         usleep(100000);
         clock_gettime(CLOCK_REALTIME, &tick);
     }
+
+    resp->success=false;
+    resp->message="rclcpp is not ok";
+    return true;
 }
 
 bool ElfinEtherCATDriver::recognizePosition_cb(const std::shared_ptr<std_srvs::srv::SetBool::Request> req, const std::shared_ptr<std_srvs::srv::SetBool::Response> resp)
@@ -811,7 +825,7 @@ bool ElfinEtherCATDriver::recognizePosition_cb(const std::shared_ptr<std_srvs::s
 
 void ElfinEtherCATDriver::error_log(int line, std::string log, std::string log_param)
 {
-    RCLCPP_ERROR(ed_nh_->get_logger(),"line: %d, %s, %s",log,line,log_param);
+    RCLCPP_ERROR(ed_nh_->get_logger(), "line: %d, %s, %s", line, log.c_str(), log_param.c_str());
 }
 
 int32_t ElfinEtherCATDriver::getIntFromStr(std::string str)
@@ -826,7 +840,7 @@ int32_t ElfinEtherCATDriver::getIntFromStr(std::string str)
     unsigned char map[4];
     int j=0;
 
-    for(int i=0; i<str.size(); i+=2)
+    for(std::size_t i=0; i<str.size(); i+=2)
     {
         unsigned char high=str[str.size()-2-i];
         unsigned char low=str[str.size()-1-i];
